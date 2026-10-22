@@ -1,0 +1,4 @@
+interface:
+  display_name: "云枢信息安全运营看板"
+  short_description: "按确认日期读取云枢数据，生成风险员工与文件外发放行 Excel 看板"
+  default_prompt: "使用 $yunshu-security-dashboard，先确认统计日期和本次 AK/SK，再按指定模板生成信息安全运营看板。"

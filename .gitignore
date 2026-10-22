@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+node_modules/
+.env
+.env.*
+work/
+outputs/
+*.partial
+*.sqlite
+*.sqlite-journal
+*.inspect.ndjson
+*.xlsx
+!skills/yunshu-security-dashboard/assets/dashboard-template.xlsx
