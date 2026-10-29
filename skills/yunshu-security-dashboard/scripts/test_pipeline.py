@@ -107,7 +107,7 @@ def excel_test(node,modules,directory):
     run=directory/'run';run.mkdir(exist_ok=True);collect(c,run,b)
     out=directory/'pipeline.xlsx'
     cmd=[sys.executable,str(Path(__file__).with_name('generate.py')),'--from-snapshot',str(run/'snapshot.json'),
-         '--work-dir',str(directory/'render'),'--output',str(out),'--node',node,'--node-modules',modules]
+         '--work-dir',str(directory/'render'),'--output',str(out)]
     subprocess.run(cmd,check=True)
     layout=json.loads((directory/'render/render-layout.json').read_text())
     assert layout['dayCap']==60 and layout['monthCap']==60  # Both sections must grow and move.
@@ -120,9 +120,9 @@ def excel_test(node,modules,directory):
     print('PASS complete mock-API -> page cache -> snapshot -> metrics -> Excel; expansion, same-name IDs, merge and ratio verified')
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--node');parser.add_argument('--node-modules');parser.add_argument('--work-dir')
+    parser=argparse.ArgumentParser();parser.add_argument('--node',help=argparse.SUPPRESS);parser.add_argument('--node-modules',help=argparse.SUPPRESS);parser.add_argument('--work-dir');parser.add_argument('--excel',action='store_true')
     args,remaining=parser.parse_known_args()
     suite=unittest.defaultTestLoader.loadTestsFromTestCase(Tests)
     if not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful():sys.exit(1)
-    if args.node and args.node_modules:
+    if args.excel or (args.node and args.node_modules):
         excel_test(args.node,args.node_modules,args.work_dir or tempfile.mkdtemp(prefix='yunshu-skill-test-'))

@@ -1,4 +1,4 @@
-"""Preflight -> collect/resume -> metrics -> template render -> verified Excel export."""
+"""Portable preflight -> collect/resume -> metrics -> verified openpyxl export."""
 import argparse, getpass, hashlib, json, os, shutil, subprocess, sys, tempfile, uuid
 from zipfile import BadZipFile
 from datetime import datetime, timedelta, timezone
@@ -24,21 +24,10 @@ def boundaries(date,cutoff=None):
 
 def runtime(args,work,template):
     if sys.version_info<(3,10):raise RuntimeError('Python 3.10+ is required')
-    node=args.node or shutil.which('node')
-    if not node:raise RuntimeError('Node.js is missing; supply --node from the workspace dependency loader')
-    node=str(Path(node).resolve()); modules=args.node_modules or os.environ.get('YUNSHU_NODE_MODULES')
-    if not modules:raise RuntimeError('Supply --node-modules from the workspace dependency loader; no API called')
-    modules=str(Path(modules).resolve())
+    from render_workbook import probe
     layout=inspect_template(template)
-    # Full library import/export/render probe, not just import resolution.
-    probe=work/'preflight.json'; save(probe,{'template':str(template),'layout':layout,'work':str(work)})
-    command=[node,str(ROOT/'render.mjs'),'--modules',modules,'--probe',str(probe)]
-    version=subprocess.run([node,'--version'],capture_output=True,text=True,check=True).stdout.strip()
-    if int(version.lstrip('v').split('.')[0])<22:raise RuntimeError('Node.js 22+ is required')
-    child_env={k:v for k,v in os.environ.items() if k not in ('YUNSHU_ACCESS_KEY','YUNSHU_SECRET_KEY')}
-    result=subprocess.run(command,capture_output=True,text=True,env=child_env)
-    if result.returncode:raise RuntimeError('Excel preflight failed before API access: '+result.stderr[-1200:])
-    return node,modules,layout
+    probe(template,work/'preflight.xlsx')
+    return None,None,layout
 
 def collect(client,work,b):
     cache=work/'pages'; provenance={}
@@ -153,11 +142,11 @@ def main():
     p.add_argument('--date'); p.add_argument('--cutoff'); p.add_argument('--base-url',default=BASE); p.add_argument('--api-prefix',default='')
     p.add_argument('--template',default=str(ROOT.parent/'assets/dashboard-template.xlsx')); p.add_argument('--output')
     p.add_argument('--work-dir'); p.add_argument('--resume-run'); p.add_argument('--from-snapshot'); p.add_argument('--confirmed-inputs',action='store_true')
-    p.add_argument('--node'); p.add_argument('--node-modules'); p.add_argument('--preflight',action='store_true')
+    p.add_argument('--node',help=argparse.SUPPRESS); p.add_argument('--node-modules',help=argparse.SUPPRESS); p.add_argument('--preflight',action='store_true')
     a=p.parse_args(); template=Path(a.template).resolve()
     work=private_dir(Path(a.resume_run or a.work_dir or tempfile.mkdtemp(prefix='yunshu-dashboard-')).resolve())
     node,modules,layout=runtime(a,work,template)
-    if a.preflight:print('PASS: Python, Node, artifact-tool, template, XLSX round-trip and PNG rendering'); return
+    if a.preflight:print('PASS: Python, openpyxl, template and XLSX round-trip; visual preview optional'); return
     if not a.output:p.error('--output is required')
     output=Path(a.output).resolve()
     if output==template:p.error('Output must not overwrite the template')
@@ -182,8 +171,8 @@ def main():
         snap=collect(client,work,b); base=work; run['status']='collected'; save(runfile,run)
     model=build_model(snap,base); modelpath=work/'model.json'; save(modelpath,model)
     config=work/'render.json'; save(config,{'template':str(template),'layout':layout,'work':str(work),'model':str(modelpath),'output':str(output)})
-    child_env={k:v for k,v in os.environ.items() if k not in ('YUNSHU_ACCESS_KEY','YUNSHU_SECRET_KEY')}
-    subprocess.run([node,str(ROOT/'render.mjs'),'--modules',modules,'--render',str(config)],check=True,env=child_env)
+    from render_workbook import render_dashboard
+    render_dashboard(template,model,layout,work)
     publish(work,output,template,layout)
     if not a.from_snapshot:
         run['status']='complete'; run['output_sha256']=hashlib.sha256(output.read_bytes()).hexdigest(); save(runfile,run)

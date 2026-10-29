@@ -107,7 +107,21 @@ def main():
     p.add_argument('--confirmed-inputs', action='store_true')
     p.add_argument('--base-url', default=BASE)
     p.add_argument('--api-prefix', default='')
+    p.add_argument('--template', help='Existing workbook with empty software installation sections')
+    p.add_argument('--output', help='Final XLSX; requires --template')
     a = p.parse_args()
+    if bool(a.template) != bool(a.output):
+        p.error('--template and --output must be supplied together')
+    if a.template:
+        if Path(a.template).resolve() == Path(a.output).resolve():
+            p.error('Output must not overwrite the template')
+        from render_workbook import render_software
+        # Validate all destination fields/clearing boundaries before reading APIs.
+        preview = {'queried_at': datetime.now(TZ).isoformat(timespec='seconds'), 'sections':
+                   [{'family': f, 'title': DISPLAY_NAMES[f], 'rows': []} for f in (a.families or FAMILIES)]}
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp:
+            render_software(a.template, preview, Path(temp)/'preflight.xlsx')
     work = private_dir(Path(a.work_dir).resolve())
     target = work/'software-snapshot.json'
     if a.from_snapshot:
@@ -125,6 +139,8 @@ def main():
         save(target, snap)
     model = build_model(snap)
     save(work/'software-model.json', model)
+    if a.output:
+        render_software(a.template, model, a.output)
     print(json.dumps({'model': str(work/'software-model.json'), 'queried_at': model['queried_at'],
                       'counts': {s['title']: s['installation_count'] for s in model['sections']}}, ensure_ascii=False))
 

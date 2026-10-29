@@ -32,7 +32,13 @@ python3 "${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-installer/scripts/inst
 
 每次新的数据刷新前都会确认日期和本次凭据。仅对同一快照重排版、重算或重新导出时，不重新访问接口。
 
-**安装 Skill 不会自动安装报表运行依赖。** Excel 生成需要 Python 3.10+、Node.js 22+，以及宿主提供的 `@oai/artifact-tool` 电子表格运行库。普通Python终端或未提供该运行库的代理环境不能直接生成报表；统一入口会在访问任何云枢接口之前做实际的模板、导入、渲染、导出预检。通过宿主的 workspace dependencies 工具取得路径，不使用作者机器的路径。
+**生成Excel只需 Python 3.10+ 和公开依赖 openpyxl，不需要私有运行库或Node.js。** 安装skill后，在同一个Python环境安装依赖：
+
+```bash
+python -m pip install -r <skill安装目录>/requirements.txt
+```
+
+Node.js仅用于上面的可选 `npx skills` 安装命令，与报表执行无关。Windows也可使用 `py -m pip` / `py`。缺少预览工具不影响XLSX生成，脚本会进行内容与结构校验。
 
 ## 报表口径
 
@@ -45,7 +51,7 @@ python3 "${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-installer/scripts/inst
 - 默认不生成折线图或柱状图，保留模板已确认的字段与样式。
 - 支持只补充指定软件安装清单，原风险/外发数据与日期保持不变。用户确认“安装即纳入”后，完整列出不同软件名、版本及安装路径，同一员工相邻姓名合并；路径缺失明确标注。该统计与平台逐台盗版检测结果有区别。
 
-软件增补的口径、接口及辅助脚本见 [软件安装统计](skills/yunshu-security-dashboard/references/software-installations.md)。现有统一入口自动生成风险/外发区域；软件辅助脚本生成已验证的中间模型，再由宿主表格工具填入用户的新增区域。
+软件增补的口径、接口及辅助脚本见 [软件安装统计](skills/yunshu-security-dashboard/references/software-installations.md)。风险和软件流程均可使用Python直接导出Excel；软件流程加 `--template` 和 `--output`，保留原风险/外发区域。
 
 接口和口径细节见 [Skill入口](skills/yunshu-security-dashboard/SKILL.md)、[统计口径](skills/yunshu-security-dashboard/references/metrics.md)。
 
@@ -57,7 +63,8 @@ python3 "${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-installer/scripts/inst
 
 ```bash
 python3 skills/yunshu-security-dashboard/scripts/test_metrics.py
-python3 skills/yunshu-security-dashboard/scripts/test_pipeline.py
+python3 skills/yunshu-security-dashboard/scripts/test_pipeline.py --excel
+python3 skills/yunshu-security-dashboard/scripts/test_portable.py
 ```
 
 带Excel运行库的完整模拟接口测试也在执行说明中。测试使用合成数据，不访问真实租户。
