@@ -43,6 +43,9 @@ python3 "${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-installer/scripts/inst
 - 外发大小按已知字节数合计，类型TOP3按大小排序，括号显示该类型合计大小。
 - “本月累计”为包含当日的最近30天；历史列分别使用近7天和过去90天。
 - 默认不生成折线图或柱状图，保留模板已确认的字段与样式。
+- 支持只补充指定软件安装清单，原风险/外发数据与日期保持不变。用户确认“安装即纳入”后，完整列出不同软件名、版本及安装路径，同一员工相邻姓名合并；路径缺失明确标注。该统计与平台逐台盗版检测结果有区别。
+
+软件增补的口径、接口及辅助脚本见 [软件安装统计](skills/yunshu-security-dashboard/references/software-installations.md)。现有统一入口自动生成风险/外发区域；软件辅助脚本生成已验证的中间模型，再由宿主表格工具填入用户的新增区域。
 
 接口和口径细节见 [Skill入口](skills/yunshu-security-dashboard/SKILL.md)、[统计口径](skills/yunshu-security-dashboard/references/metrics.md)。
 

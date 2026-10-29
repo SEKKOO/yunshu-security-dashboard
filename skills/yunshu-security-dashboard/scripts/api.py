@@ -10,7 +10,9 @@ IDS = {'/dlp/log_process/list_dlp_file_send_log':'log_id','/dlp/risk/event/list'
  '/idaas/identity_source/list':'source_id','/idaas/employee/employee_list':'employee_id',
  '/idaas/employee/list_with_terminal':'employee_id'}
 ALLOWED = set(IDS) | {'/idaas/identity_source/custom/employee/get_count',
- '/idaas/employee/get_detail','/epp/it/terminal/list_all_terminal'}
+ '/idaas/employee/get_detail','/epp/it/terminal/list_all_terminal',
+ '/epp/terminal_software/list','/epp/software/analysis/get_software_detail',
+ '/epp/software/analysis/page_installed_software'}
 PROJECT = {
  '/dlp/log_process/list_dlp_file_send_log':['log_id','time','employee_id','trigger','action','file_size','file_parent_category','terminal_id','terminal_name','dev_sn','terminal_mac_addr'],
  '/dlp/risk/event/list':['event_id','alert_time','employee_id','policy_name','risk','level','hit_summary'],

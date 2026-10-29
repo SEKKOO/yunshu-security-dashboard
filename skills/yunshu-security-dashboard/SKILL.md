@@ -1,6 +1,6 @@
 ---
 name: yunshu-security-dashboard
-description: 读取云枢 OpenAPI 的风险事件、文件外发放行日志及员工终端信息，按用户确认的统计口径填充信息安全运营看板 Excel。用于生成、刷新或调整风险员工 TOP10 与文件外发大小 TOP10；区别于五页 HTML 运营报告。
+description: 读取云枢 OpenAPI，填充或补充信息安全运营看板 Excel，支持风险员工 TOP10、文件外发放行大小 TOP10 和指定软件安装清单（含不同名称及版本）。区别于五页 HTML 运营报告。
 ---
 
 # 云枢信息安全运营看板
@@ -15,6 +15,8 @@ description: 读取云枢 OpenAPI 的风险事件、文件外发放行日志及�
 - 只从用户授权的云枢服务地址读取，默认 `https://cs-hz0.sase.eagleyun.com`。凭据仅用于本次认证，不写入文件、输出、模板或日志。
 
 ## 工作流程
+
+先确定本次范围：完整刷新风险/外发看板，或只补充软件安装清单。只补充软件时，阅读 [软件安装统计](references/software-installations.md)，不要执行下面的全量风险/外发刷新，不修改原看板数据或原更新日期。软件区单独标明采集时间。
 
 1. 阅读 [数据接口与读取](references/data-reading.md) 和 [统计口径](references/metrics.md)。
 2. 阅读 [执行与环境](references/execution.md)，使用统一入口 `scripts/generate.py`。先完成环境与模板预检，再用同一截止时间分页读取近90天风险事件、近30天审计日志、员工、身份源、绑定和设备总数。正常刷新使用新的运行目录；明确恢复同一次运行时才复用已验证的页面。
@@ -35,3 +37,5 @@ description: 读取云枢 OpenAPI 的风险事件、文件外发放行日志及�
 - 默认不生成折线图、柱状图；不自行添加月人均风险图表或数据区。
 
 用户后续明确变更口径时，以最新指令为准，更新相关计算、展示和校验，不沿用已被替代的旧规则。
+
+软件清单的最新约定：用户指定的三类软件（Dassault Systemes Software Version、Dassault Systemes SIMULIA、Solidworks）按“安装即纳入”统计，不依赖平台盗版标识；所有匹配的软件名和版本都列出。该口径是用户定义的清单范围，不能泛化为平台逐台盗版鉴定。其他用户未指定软件或判定口径时先确认，不自动套用这三类。
